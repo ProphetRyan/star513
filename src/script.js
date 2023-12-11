@@ -47,7 +47,7 @@ scene.add(camera);
 // Controls
 const controls = new TrackballControls(camera, canvas);
 controls.noPan;
-controls.rotateSpeed = 0.05;
+controls.rotateSpeed = 0.1;
 controls.dynamicDampingFactor = 0.01;
 controls.noZoom = true
 
