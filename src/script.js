@@ -51,11 +51,15 @@ camera.position.z = 8;
 scene.add(camera);
 
 // Controls
-const controls = new TrackballControls(camera, canvas);
-controls.noPan;
+const controls = new OrbitControls(camera, canvas);
+controls.enablePan = false;
 controls.rotateSpeed = 0.1;
-controls.dynamicDampingFactor = 0.1;
-controls.noZoom = true
+controls.enableDamping = true;
+controls.dampingFactor = 0.01;
+controls.enableZoom = false
+controls.minPolarAngle = Math.PI*0.4
+controls.maxPolarAngle = Math.PI*0.6
+
 
 //Textures
 const textureLoader = new THREE.TextureLoader();
@@ -64,8 +68,8 @@ const env_texture = textureLoader.load("/textures/v2.png");
 
 env_texture.mapping = THREE.EquirectangularReflectionMapping;
 env_texture.flipY = false;
-// env_texture.flipX = true
 scene.environment = env_texture;
+// env_texture.flipX = true
 // scene.background = new THREE.Color(0x151592);
 // const matcap1 = textureLoader.load('/textures/matcaps/16.png')
 // const matcap2 = textureLoader.load('/textures/matcaps/17.png')
@@ -115,7 +119,9 @@ const trColors = {
 };
 const createPalette = (colors) => colors.map((color) => new THREE.Color(color));
 // Objects
-let plane = new THREE.PlaneGeometry(20, 10, 200, 200);
+
+// let plane = new THREE.PlaneGeometry(20, 10, 100, 100);
+let plane = new THREE.CylinderGeometry(20, 20, 50, 200);
 plane.computeBoundingSphere();
 plane.center();
 
@@ -141,7 +147,7 @@ let planematerial = new THREE.ShaderMaterial({
   vertexShader: vertex,
   fragmentShader: fragment,
 });
-
+planematerial.side = THREE.DoubleSide;
 let mesh = new THREE.Mesh(plane, planematerial);
 mesh.position.z = -1
 scene.add(mesh);
