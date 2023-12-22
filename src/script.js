@@ -3,6 +3,7 @@ import * as THREE from "three";
 import { Clock, Material, PointLight } from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import { TrackballControls } from "three/examples/jsm/controls/TrackballControls";
+// import { GUI } from "./dat.gui";
 import {
   GLTFLoader,
   GLTFParser,
@@ -53,7 +54,7 @@ scene.add(camera);
 // Controls
 const controls = new OrbitControls(camera, canvas);
 controls.enablePan = false;
-controls.rotateSpeed = 0.1;
+controls.rotateSpeed = 0.5;
 controls.enableDamping = true;
 controls.dampingFactor = 0.01;
 controls.enableZoom = false
@@ -64,11 +65,12 @@ controls.maxPolarAngle = Math.PI*0.6
 //Textures
 const textureLoader = new THREE.TextureLoader();
 
-const env_texture = textureLoader.load("/textures/v2.png");
+const env_texture = textureLoader.load("/textures/star env.v2.png");
 
 env_texture.mapping = THREE.EquirectangularReflectionMapping;
 env_texture.flipY = false;
-scene.environment = env_texture;
+// scene.environment = env_texture;
+
 // env_texture.flipX = true
 // scene.background = new THREE.Color(0x151592);
 // const matcap1 = textureLoader.load('/textures/matcaps/16.png')
@@ -85,19 +87,17 @@ scene.environment = env_texture;
 
 // console.log(outer_circle_material)
 
-const logo_material = new THREE.MeshStandardMaterial({
-  // color : 0xffffff,
-  // // map : logo_texture,
-  // // normalMap :
-  // // displacementMap :
-  // // displacementScale :
-  // // transparent : false
-  // // alphaMap :
-  // // wireframe : true
-  // envMap :  logo_texture,
-  envMapIntensity: 1,
+const logo_material = new THREE.MeshPhysicalMaterial({
+  // color : 0x000000,
+  // reflectivity : 1,
+  envMapIntensity: 2,
+  envMap: env_texture,
   metalness: 1,
   roughness: 0.08,
+  iridescence: 1,
+  iridescenceThicknessRange: [100, 400],
+  iridescenceIOR: 1.3,
+  // clearcoat: 1
 });
 
 const params = {
@@ -122,6 +122,8 @@ const createPalette = (colors) => colors.map((color) => new THREE.Color(color));
 
 // let plane = new THREE.PlaneGeometry(20, 10, 100, 100);
 let plane = new THREE.CylinderGeometry(20, 20, 50, 200);
+
+// let plane = new THREE.IcosahedronGeometry(10,10);
 plane.computeBoundingSphere();
 plane.center();
 
@@ -133,26 +135,27 @@ let planematerial = new THREE.ShaderMaterial({
       value: new THREE.Vector2(
         sizes.width * sizes.pixelRatio,
         sizes.height * sizes.pixelRatio
-      ),
+        ),
+      },
+      uRatio: { type: "f", value: sizes.width / sizes.height },
+      uPalette: { value: createPalette(params.colors.dark) },
+      uNoiseStrength: { value: params.noiseStrength },
+      uWavesAmount: { value: params.wavesAmount },
+      uWavesSpeed: { value: params.wavesSpeed },
+      uWavesBrightness: { value: params.wavesBrightness },
+      uHorizontalStretch: { value: params.horizontalStretch },
+      uVerticalStretch: { value: params.verticalStretch },
     },
-    uRatio: { type: "f", value: sizes.width / sizes.height },
-    uPalette: { value: createPalette(params.colors.dark) },
-    uNoiseStrength: { value: params.noiseStrength },
-    uWavesAmount: { value: params.wavesAmount },
-    uWavesSpeed: { value: params.wavesSpeed },
-    uWavesBrightness: { value: params.wavesBrightness },
-    uHorizontalStretch: { value: params.horizontalStretch },
-    uVerticalStretch: { value: params.verticalStretch },
-  },
-  vertexShader: vertex,
-  fragmentShader: fragment,
-});
-planematerial.side = THREE.DoubleSide;
-let mesh = new THREE.Mesh(plane, planematerial);
-mesh.position.z = -1
-scene.add(mesh);
-
-//GLTF Loader
+    vertexShader: vertex,
+    fragmentShader: fragment,
+  });
+  planematerial.side = THREE.DoubleSide;
+  let mesh = new THREE.Mesh(plane, planematerial);
+  // mesh.rotation.x = Math.PI
+  mesh.position.z = -1
+  scene.add(mesh);
+  
+  //GLTF Loader
 let mixer = null;
 const gltfloader = new GLTFLoader();
 let logo;
@@ -187,22 +190,26 @@ gltfloader.load("/models/Star.gltf", (gltf) => {
 });
 
 //Lights
-const ambientlight = new THREE.AmbientLight(0xffffff, 1);
+// const ambientlight = new THREE.AmbientLight(0xffffff, 1);
 // ambientlight.castShadow = true
 
-const light1 = new THREE.DirectionalLight(0xff932e, 2);
-const helper1 = new THREE.DirectionalLightHelper(light1);
-light1.position.set(3, 3, 0);
+const light1 = new THREE.DirectionalLight(0xc2cc85, 1);
+light1.position.set(-2, 2, 0);
 
-const light2 = new THREE.DirectionalLight(0x397bfe, 10);
-const helper2 = new THREE.DirectionalLightHelper(light2);
-light2.position.set(-3, 3, 0);
+const light2 = new THREE.DirectionalLight(0x8e85cc, 2);
+light2.position.set(2, 2, 0);
+
+const light3 = new THREE.DirectionalLight(0x85c2cc, 5);
+light3.position.set(2, -2, 0);
+
+const light4 = new THREE.DirectionalLight(0xcc6c49, 2);
+light4.position.set(-2, -2, 0);
 
 // directionallight.castShadow = true
 // directionallight.shadow.mapSize.width = 2048
 // directionallight.shadow.mapSize.height = 2048
 
-scene.add(ambientlight, light1, light2);
+scene.add(light1, light2, light3, light4);
 
 // Renderer
 const renderer = new THREE.WebGLRenderer({
@@ -211,7 +218,7 @@ const renderer = new THREE.WebGLRenderer({
 });
 renderer.setSize(sizes.width, sizes.height);
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-renderer.setClearColor("#000073", 1);
+// renderer.setClearColor("#000073", 1);
 
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
@@ -266,8 +273,8 @@ const tick = () => {
 
 tick();
 
-//GUI
-// const gui = new dat.GUI()
+// // GUI
+// const gui = new THREE.gui;
 
 // gui
 // .add(mesh.position, 'y')
