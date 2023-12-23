@@ -65,7 +65,7 @@ controls.maxPolarAngle = Math.PI*0.6
 //Textures
 const textureLoader = new THREE.TextureLoader();
 
-const env_texture = textureLoader.load("/textures/v2.png");
+const env_texture = textureLoader.load("/textures/star env.v2.png");
 
 env_texture.mapping = THREE.EquirectangularReflectionMapping;
 env_texture.flipY = false;
